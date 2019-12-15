@@ -1,0 +1,52 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PercentageRing">
+
+    <Style TargetType="local:PercentageRing">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:PercentageRing">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Viewbox>
+                            <Grid x:Name="PART_Container"
+                                  Height="200"
+                                  Width="200"
+                                  Background="Transparent">
+
+                                <!-- Scale -->
+                                <Path Name="PART_Scale"
+                                      Stroke="{TemplateBinding ScaleBrush}"
+                                      StrokeThickness="{TemplateBinding ScaleWidth}"
+                                      StrokeStartLineCap="{TemplateBinding ScaleStartCap}"
+                                      StrokeEndLineCap="{TemplateBinding ScaleEndCap}" />
+
+                                <!-- Trail -->
+                                <Path Name="PART_Trail"
+                                      Stroke="{TemplateBinding TrailBrush}"
+                                      StrokeThickness="{TemplateBinding ScaleWidth}"
+                                      StrokeStartLineCap="{TemplateBinding TrailStartCap}"
+                                      StrokeEndLineCap="{TemplateBinding TrailStartCap}" />
+
+                                <!-- Value -->
+                                <StackPanel VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <TextBlock Name="PART_ValueText"
+                                               Foreground="{TemplateBinding ValueBrush}"
+                                               FontSize="28"
+                                               FontWeight="SemiBold"
+                                               Text="{TemplateBinding Value}"
+                                               TextAlignment="Center" />
+                                    <!--<FontIcon Glyph="&#xE896;" />-->
+                                </StackPanel>
+                            </Grid>
+                        </Viewbox>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,9 @@
+﻿English
+This application does not collect or transmit any user's personally identifiable information.No personal information is used, stored, secured or disclosed by services this application works with.
+
+Limited technical information is sent that includes HTTP calls application makes but none that is used or stored.
+
+This privacy policy is subject to change without notice and was last updated on 2019.11.26.
+
+Third Party Discosure:
+We  do not sell,trade,or otherwise transfer to outside parties your personal identifiable information.Personal information includes all information or data that could reasonably be used to identify a person. Examples of personal information include: contacts, photos, phone number, audio & video recordings, location, SMS or other text communication, screen shots, unique account identifiers, unique identifiers based on the computer's hardware, and in some cases, combined browsing history.
