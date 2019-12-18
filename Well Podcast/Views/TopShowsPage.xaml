@@ -41,7 +41,7 @@
         <Pivot>
             <PivotItem>
                 <PivotItem.Header>
-                    <TextBlock Margin="12" Text="Top Charts" FontFamily="ms-appx:/Fonts/SF-Pro-Display-Regular.ttf#SF Pro Display" FontSize="20"  />
+                    <TextBlock Text="Top Charts" FontSize="20"  />
                 </PivotItem.Header>
                 <GridView ItemsSource="{Binding topFeeds}" SelectedItem="{Binding SelectedFeed,Mode=TwoWay}" Margin="12" ScrollViewer.VerticalScrollBarVisibility="Hidden">
                     <i:Interaction.Behaviors>
@@ -74,7 +74,7 @@
             </PivotItem>-->
             <PivotItem>
                 <PivotItem.Header>
-                    <TextBlock Margin="12" Text="Subscribed" FontFamily="ms-appx:/Fonts/SF-Pro-Display-Regular.ttf#SF Pro Display" FontSize="20" />
+                    <TextBlock Text="Subscribed" FontSize="20" />
                 </PivotItem.Header>
                 <GridView x:Name="SubscribeGridView" ItemsSource="{Binding Subscribed}">
                     <i:Interaction.Behaviors>

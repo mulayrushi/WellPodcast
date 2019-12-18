@@ -38,16 +38,24 @@
         <CommandBar >
             <CommandBar.Content>
                 <StackPanel Orientation="Horizontal">
-                    <AppBarButton Command="{Binding HamburgerCommand}">
+                    <AppBarButton Command="{Binding HamburgerCommand}" Width="48">
                         <AppBarButton.Icon>
-                            <FontIcon Glyph="" />
+                            <FontIcon Glyph="" FontSize="16" />
                         </AppBarButton.Icon>
                     </AppBarButton>
-                    <TextBlock x:Uid="ShellTitle" Text="Well Podcast" FontSize="20" Margin="8,0,8,10" VerticalAlignment="Center" HorizontalAlignment="Center" FontFamily="ms-appx:/Fonts/SF-UI-Display-Thin.otf#SF UI Display" FontWeight="Thin" />
+                    <TextBlock x:Uid="ShellTitle" Text="Well Podcast" FontSize="18" Margin="8,0,8,10" VerticalAlignment="Center" HorizontalAlignment="Center" FontFamily="ms-appx:/Fonts/SF-UI-Display-Thin.otf#SF UI Display" FontWeight="Thin" />
                 </StackPanel>
             </CommandBar.Content>
-            <AppBarButton Icon="Find" Label="Search" Command="{Binding SearchCommand}"/>
-            <AppBarButton Icon="Setting" Label="Settings" Command="{Binding SettingsCommand}"/>
+            <AppBarButton Label="Search" Command="{Binding SearchCommand}" IsEnabled="{x:Bind ViewModel.IsInternetAvailable,Mode=OneWay}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="" FontSize="16" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton Label="Settings" Command="{Binding SettingsCommand}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="" FontSize="16" />
+                </AppBarButton.Icon>
+            </AppBarButton>
             <CommandBar.SecondaryCommands>
 
             </CommandBar.SecondaryCommands>
@@ -97,7 +105,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Button Style="{StaticResource RoundCornerButtonStyle}" Height="28" Width="28" Margin="6" VerticalAlignment="Top" Command="{Binding BackCommand}">
+                        <Button Style="{StaticResource NavigationBackButtonSmallStyle}" Height="28" Width="28" Margin="6" VerticalAlignment="Top" Command="{Binding BackCommand}">
                             <FontIcon Glyph="" />
                         </Button>
                         <ListView Grid.Row="1" ItemsSource="{Binding playLists,Mode=OneWay}" SelectedItem="{Binding SelectedPlayListItem,Mode=TwoWay}">
@@ -140,6 +148,7 @@
 
             <StackPanel Grid.Row="1">
                 <MediaPlayerElement x:Name="ShellMediaPlayer" AreTransportControlsEnabled="True" VerticalAlignment="Bottom"  Style="{StaticResource MediaPlayerElementStyle}">
+
                     <MediaPlayerElement.TransportControls >
                         <cmtc:CustomMediaTransportControls x:Name="CustomMediaControls" Title="{Binding SelectedPlayListItem.Name}"
                                                     IsPlaybackRateButtonVisible="True"
@@ -156,10 +165,6 @@
                     </MediaPlayerElement.TransportControls>
                 </MediaPlayerElement>
             </StackPanel>
-        </Grid>
-
-        <Grid x:Name="OfflineGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Visibility="{Binding IsOffline,Mode=OneTime}">
-            <TextBlock Text="OFFLINE" HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Grid>
     </Grid>
 </Page>

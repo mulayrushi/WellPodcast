@@ -37,30 +37,34 @@ namespace Well_Podcast.ViewModels
 
         private async void Trending(object parameter)
         {
-            NavigationService.Navigate(typeof(Views.TopShowsPage));
-
-            var region = Windows.System.UserProfile.GlobalizationPreferences.HomeGeographicRegion;
-
-            var json = await Services.AppleServices.AppleService.GetTopFeed(region);
-            foreach (var result in json.feed.results)
+            try
             {
-                var newFeed = new TopShows();
-                newFeed.ArtistName = result.artistName;
-                newFeed.ArtworkUrl100 = result.artworkUrl100;
-                newFeed.IsExplicit = result.contentAdvisoryRating == "Explicit" ? true : false;
-                newFeed.GenreId = result.genres[0].genreId;
-                newFeed.Name = result.name;
-                newFeed.ReleaseDate = result.releaseDate;
-                newFeed.FeedId = result.id;
+                NavigationService.Navigate(typeof(Views.TopShowsPage));
 
-                var count = Subscribed.Where(r => r.PodcastId == result.id).Count();
-                if (count > 0)
+                var region = Windows.System.UserProfile.GlobalizationPreferences.HomeGeographicRegion;
+
+                var json = await Services.AppleServices.AppleService.GetTopFeed(region);
+                foreach (var result in json.feed.results)
                 {
-                    newFeed.IsSubscribed = true;
-                }
+                    var newFeed = new TopShows();
+                    newFeed.ArtistName = result.artistName;
+                    newFeed.ArtworkUrl100 = result.artworkUrl100;
+                    newFeed.IsExplicit = result.contentAdvisoryRating == "Explicit" ? true : false;
+                    newFeed.GenreId = result.genres[0].genreId;
+                    newFeed.Name = result.name;
+                    newFeed.ReleaseDate = result.releaseDate;
+                    newFeed.FeedId = result.id;
 
-                topFeeds.Add(newFeed);
+                    var count = Subscribed.Where(r => r.PodcastId == result.id).Count();
+                    if (count > 0)
+                    {
+                        newFeed.IsSubscribed = true;
+                    }
+
+                    topFeeds.Add(newFeed);
+                }
             }
+            catch { }
         }
 
         private async void SuggestBoxQuerySubmitted(object parameter)
@@ -256,131 +260,145 @@ namespace Well_Podcast.ViewModels
 
         private void PlayAllPodcast(object parameter)
         {
-            foreach(var feed in SelectedPodcastChannel.feeds)
+            try
             {
-                var mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(feed.EnclosureUrl));
-                var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
+                foreach (var feed in SelectedPodcastChannel.feeds)
+                {
+                    var mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(feed.EnclosureUrl));
+                    var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
 
+                    _mediaPlaybackList.Items.Add(mediaPlaybackItem);
+                    _mediaPlaybackList.CurrentItemChanged += _mediaPlaybackList_CurrentItemChanged;
+                    var play = new PlayList();
+
+                    play.AlbumName = SelectedPodcastChannel.Title;
+                    play.ArtistName = SelectedPodcastChannel.Author;
+                    play.SongName = feed.Title;
+                    play.SongImageUrl = feed.Image;
+                    play.SongUrl = feed.EnclosureUrl;
+
+                    playLists.Add(play);
+
+                    _mediaPlayer.Source = _mediaPlaybackList;
+                    _mediaPlayerElement.MediaPlayer.Play();
+                }
+            }
+            catch { }
+        }
+
+        private void ClearAllPodcast(object parameter)
+        {
+            try
+            {
+                _mediaPlayerElement.MediaPlayer.Pause();
+                _mediaPlayerElement.Source = null;
+                _mediaPlaybackList.Items.Clear();
+                playLists.Clear();
+            }
+            catch { }
+        }
+
+        private async void PlaySinglePodcast(object parameter)
+        {
+            try
+            {
+                _mediaPlayer.Pause();
+
+                MediaPlayer_CurrentStateChanged(_mediaPlayer, parameter);
+
+                SelectedPodcastItem = parameter as Feeds;
+
+                var url = SelectedPodcastItem.Image != null ? SelectedPodcastItem.Image : SelectedPodcastChannel.Image;
+                Windows.Media.Core.MediaSource mediaSource;
+
+                var updater = _systemMediaTransportControls.DisplayUpdater;
+
+                updater.Type = MediaPlaybackType.Music;
+                updater.MusicProperties.Title = SelectedPodcastItem.Title;
+                //updater.MusicProperties.AlbumArtist = SelectedPodcastItem.
+
+                if (SelectedPodcastItem.IsDownloaded)
+                {
+                    try
+                    {
+                        var folder = await DatabaseHelper.GetFolder(SelectedPodcastChannel.Id);
+                        var ext = System.IO.Path.GetExtension(SelectedPodcastItem.EnclosureUrl);
+                        if (ext.Length > 4)
+                            ext = ext.Substring(ext.IndexOf('.'), 4);
+                        var fileName = System.IO.Path.GetFileNameWithoutExtension(SelectedPodcastItem.EnclosureUrl) + ext;
+                        var file = await folder.GetFileAsync(fileName);
+
+                        mediaSource = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(SelectedPodcastItem.EnclosureUrl));
+                    }
+                }
+                else
+                {
+                    mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(SelectedPodcastItem.EnclosureUrl));
+                }
+
+
+                //mediaSource.CustomProperties
+                var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
+                //mediaPlaybackItem.
                 _mediaPlaybackList.Items.Add(mediaPlaybackItem);
                 _mediaPlaybackList.CurrentItemChanged += _mediaPlaybackList_CurrentItemChanged;
                 var play = new PlayList();
 
                 play.AlbumName = SelectedPodcastChannel.Title;
                 play.ArtistName = SelectedPodcastChannel.Author;
-                play.SongName = feed.Title;
-                play.SongImageUrl = feed.Image;
-                play.SongUrl = feed.EnclosureUrl;
+                play.SongName = SelectedPodcastItem.Title;
+                play.SongImageUrl = SelectedPodcastItem.Image;
+                play.SongUrl = SelectedPodcastItem.EnclosureUrl;
+                //var inPlayList = false;
+                //var inde = 0;
+                //try
+                //{
+                //    var pl = playLists.Where(r => r.SongUrl == play.SongUrl).First();
+                //    inPlayList = true;
+                //    inde = playLists.IndexOf(pl);
+                //}
+                //catch { }
+
+                //if(inPlayList)
+                //{
+                //    //var bytes = _mediaPlayerE
+                //    _mediaPlaybackList.MoveTo((uint)inde);
+                //    SelectedPlayListItem = playLists[inde];
+                //}
+                //else
+                //{
+
+                //}
 
                 playLists.Add(play);
 
                 _mediaPlayer.Source = _mediaPlaybackList;
+
+                SelectedPlayListItem = playLists[playLists.IndexOf(play)];
+
+                position = SelectedPodcastChannel.feeds.IndexOf(SelectedPodcastChannel.feeds.Where(X => X == SelectedPodcastItem).FirstOrDefault());
+                _mediaPlayerElement.MaxHeight = 100;
+                mediaPlayBackSession = _mediaPlayer.PlaybackSession;
+                _mediaPlayerElement.MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+                _mediaPlayerElement.MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
+                mediaPlayBackSession.PositionChanged += MediaPlayBackSession_PositionChanged;
+
+                //if(_mediaPlaybackList.Items.Count > 1)
+                //{
+                //    _mediaPlaybackList.MoveNext();
+                //}
+
                 _mediaPlayerElement.MediaPlayer.Play();
+
+
+
+                _mediaPlayerElement.PosterSource = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri(url));
             }
-        }
-
-        private void ClearAllPodcast(object parameter)
-        {
-            _mediaPlayerElement.MediaPlayer.Pause();
-            _mediaPlayerElement.Source = null;
-            _mediaPlaybackList.Items.Clear();
-            playLists.Clear();
-        }
-
-        private async void PlaySinglePodcast(object parameter)
-        {
-            _mediaPlayer.Pause();
-
-            MediaPlayer_CurrentStateChanged(_mediaPlayer, parameter);
-            
-            SelectedPodcastItem = parameter as Feeds;
-            
-            var url = SelectedPodcastItem.Image != null ? SelectedPodcastItem.Image : SelectedPodcastChannel.Image;
-            Windows.Media.Core.MediaSource mediaSource;
-
-            var updater = _systemMediaTransportControls.DisplayUpdater;
-
-            updater.Type = MediaPlaybackType.Music;
-            updater.MusicProperties.Title = SelectedPodcastItem.Title;
-            //updater.MusicProperties.AlbumArtist = SelectedPodcastItem.
-
-            if (SelectedPodcastItem.IsDownloaded)
-            {
-                try
-                {
-                    var folder = await DatabaseHelper.GetFolder(SelectedPodcastChannel.Id);
-                    var ext = System.IO.Path.GetExtension(SelectedPodcastItem.EnclosureUrl);
-                    if (ext.Length > 4)
-                        ext = ext.Substring(ext.IndexOf('.'), 4);
-                    var fileName = System.IO.Path.GetFileNameWithoutExtension(SelectedPodcastItem.EnclosureUrl) + ext;
-                    var file = await folder.GetFileAsync(fileName);
-                    
-                    mediaSource = Windows.Media.Core.MediaSource.CreateFromStorageFile(file);
-                }
-                catch (Exception ex)
-                {
-                    mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(SelectedPodcastItem.EnclosureUrl));
-                }
-            }
-            else
-            {
-                mediaSource = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(SelectedPodcastItem.EnclosureUrl));
-            }
-            
-            //mediaSource.CustomProperties
-            var mediaPlaybackItem = new MediaPlaybackItem(mediaSource);
-            _mediaPlaybackList.Items.Add(mediaPlaybackItem);
-            _mediaPlaybackList.CurrentItemChanged += _mediaPlaybackList_CurrentItemChanged;
-            var play = new PlayList();
-
-            play.AlbumName = SelectedPodcastChannel.Title;
-            play.ArtistName = SelectedPodcastChannel.Author;
-            play.SongName = SelectedPodcastItem.Title;
-            play.SongImageUrl = SelectedPodcastItem.Image;
-            play.SongUrl = SelectedPodcastItem.EnclosureUrl;
-            //var inPlayList = false;
-            //var inde = 0;
-            //try
-            //{
-            //    var pl = playLists.Where(r => r.SongUrl == play.SongUrl).First();
-            //    inPlayList = true;
-            //    inde = playLists.IndexOf(pl);
-            //}
-            //catch { }
-            
-            //if(inPlayList)
-            //{
-            //    //var bytes = _mediaPlayerE
-            //    _mediaPlaybackList.MoveTo((uint)inde);
-            //    SelectedPlayListItem = playLists[inde];
-            //}
-            //else
-            //{
-                
-            //}
-
-            playLists.Add(play);
-
-            _mediaPlayer.Source = _mediaPlaybackList;
-
-            SelectedPlayListItem = playLists[playLists.IndexOf(play)];
-
-            position = SelectedPodcastChannel.feeds.IndexOf(SelectedPodcastChannel.feeds.Where(X => X == SelectedPodcastItem).FirstOrDefault());
-            _mediaPlayerElement.MaxHeight = 100;
-            mediaPlayBackSession = _mediaPlayer.PlaybackSession;
-            _mediaPlayerElement.MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-            _mediaPlayerElement.MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
-            mediaPlayBackSession.PositionChanged += MediaPlayBackSession_PositionChanged;
-            
-            //if(_mediaPlaybackList.Items.Count > 1)
-            //{
-            //    _mediaPlaybackList.MoveNext();
-            //}
-            
-            _mediaPlayerElement.MediaPlayer.Play();
-
-            
-
-            _mediaPlayerElement.PosterSource = new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri(url));
+            catch { }
         }
 
         private void _mediaPlaybackList_CurrentItemChanged(MediaPlaybackList sender, CurrentMediaPlaybackItemChangedEventArgs args)
@@ -421,9 +439,12 @@ namespace Well_Podcast.ViewModels
 
         private void PlayListViewSelectionChanged(object parameter)
         {
-            var index = playLists.IndexOf(SelectedPlayListItem);
-            
-            _mediaPlaybackList.MoveTo((uint)index);
+            try
+            {
+                var index = playLists.IndexOf(SelectedPlayListItem);
+                _mediaPlaybackList.MoveTo((uint)index);
+            }
+            catch { }
         }
 
         private void Subscribe(object parameter)
@@ -458,7 +479,7 @@ namespace Well_Podcast.ViewModels
         {
             SelectedPodcastItem = parameter as Feeds;
             //SelectedPlayListItem.
-            var folder = await Windows.Storage.ApplicationData.Current.RoamingFolder.CreateFolderAsync(SelectedPodcastChannel.Id,Windows.Storage.CreationCollisionOption.OpenIfExists);
+            var folder = await Windows.Storage.ApplicationData.Current.LocalFolder.CreateFolderAsync(SelectedPodcastChannel.Id,Windows.Storage.CreationCollisionOption.OpenIfExists);
             var ext = System.IO.Path.GetExtension(SelectedPodcastItem.EnclosureUrl);
             if (ext.Length > 4)
                 ext = ext.Substring(ext.IndexOf('.'), 4);
@@ -628,14 +649,11 @@ namespace Well_Podcast.ViewModels
 
             InitializeMediaPlayer();
 
-            if(NetworkService.isInternetConnected)
+            IsInternetAvailable = NetworkService.IsConnected;
+            if (IsInternetAvailable)
             {
                 Trending(null);
                 InitializeAsync();
-            }
-            else
-            {
-                IsOffline = true;
             }
 
             try
@@ -747,11 +765,11 @@ namespace Well_Podcast.ViewModels
             set { Set(ref m_SelectedSearch, value); }
         }
 
-        private bool m_IsOffline;
-        public bool IsOffline
+        private bool m_IsInternetAvailable;
+        public bool IsInternetAvailable
         {
-            get { return m_IsOffline; }
-            set { Set(ref m_IsOffline, value); }
+            get { return m_IsInternetAvailable; }
+            set { Set(ref m_IsInternetAvailable, value); }
         }
 
         private int m_SelectedThemeIndex;

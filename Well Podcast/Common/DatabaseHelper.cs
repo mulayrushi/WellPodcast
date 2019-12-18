@@ -78,7 +78,7 @@ namespace Well_Podcast.Common
 
         public static async Task<Windows.Storage.StorageFolder> GetFolder(string fileName)
         {
-            var folder = await ApplicationData.Current.RoamingFolder.CreateFolderAsync(fileName, CreationCollisionOption.OpenIfExists);
+            var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(fileName, CreationCollisionOption.OpenIfExists);
             return folder;
         }
 
@@ -93,7 +93,7 @@ namespace Well_Podcast.Common
             //        try { StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(fileName); }
             //catch { return false; }
             //return true;
-            var item = await ApplicationData.Current.RoamingFolder.TryGetItemAsync(fileName);
+            var item = await ApplicationData.Current.LocalFolder.TryGetItemAsync(fileName);
             return item != null;
         }
 

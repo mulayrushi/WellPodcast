@@ -37,13 +37,8 @@ namespace Well_Podcast.Services.ActivationServices
             try
             {
                 activatedEventArgs = e;
-                await Initialize();
-                Common.Singleton<NetworkService>.Instance.Initialize();
-                //Common.Singleton<LocalizationService>.Instance.Initialize();
-                //await LocalizationService.PreLaunchAsync();
-                //await Common.Singleton<ThemeSelectorService>.Instance.Initialize();
-                //Common.Singleton<InAppPurchaseService>.Instance.Initialize();
-                //Common.Singleton<GoogleServices.GoogleService>.Instance.Initialize();
+                await Common.Singleton<FirstUseActivationService>.Instance.InitializeAsync();
+                //await Common.Singleton<FileService>.Instance.InitializeAsync();
 
             }
             catch { }
