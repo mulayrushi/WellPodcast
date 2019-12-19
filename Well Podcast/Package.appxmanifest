@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" IgnorableNamespaces="uap mp uap3">
-  <Identity Name="4238Rushi.WellPodcast" Publisher="CN=54896319-70D4-42B1-A0E9-91330E77594B" Version="1.1.9.0" />
+  <Identity Name="4238Rushi.WellPodcast" Publisher="CN=54896319-70D4-42B1-A0E9-91330E77594B" Version="1.1.10.0" />
   <mp:PhoneIdentity PhoneProductId="3f819e83-bc13-49d7-8640-2cd5bd49e03b" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Well Podcast</DisplayName>

@@ -24,10 +24,9 @@ namespace Well_Podcast.ViewModels
                 {
                     mediaPlayBackSession.PositionChanged -= MediaPlayBackSession_PositionChanged;
                 }
+                NavigationService.GoBack();
             }
             catch { }
-            
-            NavigationService.GoBack();
         }
 
         private void Hamburger(object parameter)
@@ -243,8 +242,6 @@ namespace Well_Podcast.ViewModels
                                     feed.DownloadPercentage = 100;
                                 }
                             }
-                            
-                                
                         }
                         catch(Exception ex) { }
 
@@ -252,8 +249,6 @@ namespace Well_Podcast.ViewModels
                     }
                     catch { }
                 }
-
-                
             }
             catch (Exception ex) { }
         }
@@ -449,98 +444,109 @@ namespace Well_Podcast.ViewModels
 
         private void Subscribe(object parameter)
         {
-            if(SelectedPodcastChannel.IsSubscribed == true)
+            try
             {
-                var sub = new SubscribeViewModel();
-                sub.ArtistName = SelectedFeed != null ? SelectedFeed.ArtistName : SelectedSearch.ArtistName;
-                sub.PodcastId = SelectedFeed != null ? SelectedFeed.FeedId : SelectedSearch.FeedId;
-                sub.ArtworkUrl100 = SelectedFeed != null ? SelectedFeed.ArtworkUrl100 : SelectedSearch.ArtworkUrl100;
-                sub.FeedUrl = SelectedPodcastChannel.FeedUrl;
-                sub.LastSeen = DateTime.Now;
-                sub.LastTrackDate = DateTime.Parse(SelectedPodcastChannel.feeds[0].PubDate);
-                sub.PodcastName = SelectedFeed != null ? SelectedFeed.Name : SelectedSearch.Name;
-                sub.TrackCount = SelectedPodcastChannel.feeds.Count;
-                Subscribed.Add(sub);
-                var channel = DatabaseHelper.Serialize(Subscribed);
-                DatabaseHelper.WriteTotextFileAsync("Subscribed", channel);
+                if (SelectedPodcastChannel.IsSubscribed == true)
+                {
+                    var sub = new SubscribeViewModel();
+                    sub.ArtistName = SelectedFeed != null ? SelectedFeed.ArtistName : SelectedSearch.ArtistName;
+                    sub.PodcastId = SelectedFeed != null ? SelectedFeed.FeedId : SelectedSearch.FeedId;
+                    sub.ArtworkUrl100 = SelectedFeed != null ? SelectedFeed.ArtworkUrl100 : SelectedSearch.ArtworkUrl100;
+                    sub.FeedUrl = SelectedPodcastChannel.FeedUrl;
+                    sub.LastSeen = DateTime.Now;
+                    sub.LastTrackDate = DateTime.Parse(SelectedPodcastChannel.feeds[0].PubDate);
+                    sub.PodcastName = SelectedFeed != null ? SelectedFeed.Name : SelectedSearch.Name;
+                    sub.TrackCount = SelectedPodcastChannel.feeds.Count;
+                    Subscribed.Add(sub);
+                    var channel = DatabaseHelper.Serialize(Subscribed);
+                    DatabaseHelper.WriteTotextFileAsync("Subscribed", channel);
+                }
+                else
+                {
+                    var sub = Subscribed.Where(r => r.PodcastId == SelectedFeed.FeedId).First();
+                    SelectedPodcastChannel.IsSubscribed = false;
+                    SelectedPodcastChannel.SubscribedText = "Subscribe";
+                    Subscribed.Remove(sub);
+                    var channel = DatabaseHelper.Serialize(Subscribed);
+                    DatabaseHelper.WriteTotextFileAsync("Subscribed", channel);
+                }
             }
-            else
-            {
-                var sub = Subscribed.Where(r => r.PodcastId == SelectedFeed.FeedId).First();
-                SelectedPodcastChannel.IsSubscribed = false;
-                SelectedPodcastChannel.SubscribedText = "Subscribe";
-                Subscribed.Remove(sub);
-                var channel = DatabaseHelper.Serialize(Subscribed);
-                DatabaseHelper.WriteTotextFileAsync("Subscribed", channel);
-            }
+            catch { }
         }
 
         private async void DownloadSinglePodcast(object parameter)
         {
-            SelectedPodcastItem = parameter as Feeds;
-            //SelectedPlayListItem.
-            var folder = await Windows.Storage.ApplicationData.Current.LocalFolder.CreateFolderAsync(SelectedPodcastChannel.Id,Windows.Storage.CreationCollisionOption.OpenIfExists);
-            var ext = System.IO.Path.GetExtension(SelectedPodcastItem.EnclosureUrl);
-            if (ext.Length > 4)
-                ext = ext.Substring(ext.IndexOf('.'), 4);
-            var fileName = System.IO.Path.GetFileNameWithoutExtension(SelectedPodcastItem.EnclosureUrl) + ext;
-            var file = await folder.CreateFileAsync(fileName);
-            var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
-            var uri = new Uri(SelectedPodcastItem.EnclosureUrl);
-            // Create a new download operation.
-            var download = downloader.CreateDownload(uri, file);
-            //var progress = await download.StartAsync();
-
-            Progress<Windows.Networking.BackgroundTransfer.DownloadOperation> progress = new Progress<Windows.Networking.BackgroundTransfer.DownloadOperation>(progressChanged);
-            var cancellationToken = new System.Threading.CancellationTokenSource();
             try
             {
-                await download.StartAsync().AsTask(cancellationToken.Token, progress);
+                SelectedPodcastItem = parameter as Feeds;
+                //SelectedPlayListItem.
+                var folder = await Windows.Storage.ApplicationData.Current.LocalFolder.CreateFolderAsync(SelectedPodcastChannel.Id, Windows.Storage.CreationCollisionOption.OpenIfExists);
+                var ext = System.IO.Path.GetExtension(SelectedPodcastItem.EnclosureUrl);
+                if (ext.Length > 4)
+                    ext = ext.Substring(ext.IndexOf('.'), 4);
+                var fileName = System.IO.Path.GetFileNameWithoutExtension(SelectedPodcastItem.EnclosureUrl) + ext;
+                var file = await folder.CreateFileAsync(fileName);
+                var downloader = new Windows.Networking.BackgroundTransfer.BackgroundDownloader();
+                var uri = new Uri(SelectedPodcastItem.EnclosureUrl);
+                // Create a new download operation.
+                var download = downloader.CreateDownload(uri, file);
+                //var progress = await download.StartAsync();
+
+                Progress<Windows.Networking.BackgroundTransfer.DownloadOperation> progress = new Progress<Windows.Networking.BackgroundTransfer.DownloadOperation>(progressChanged);
+                var cancellationToken = new System.Threading.CancellationTokenSource();
+                try
+                {
+                    await download.StartAsync().AsTask(cancellationToken.Token, progress);
+                }
+                catch (TaskCanceledException)
+                {
+
+                }
             }
-            catch (TaskCanceledException)
-            {
-                
-            }
+            catch { }
         }
 
         private void progressChanged(Windows.Networking.BackgroundTransfer.DownloadOperation downloadOperation)
         {
-            int progress = SelectedPodcastItem.DownloadPercentage = (int)(100 * ((double)downloadOperation.Progress.BytesReceived / (double)downloadOperation.Progress.TotalBytesToReceive));
-            //Statustext.Text = String.Format("{0} of {1} kb. downloaded - %{2} complete.", downloadOperation.Progress.BytesReceived / 1024, downloadOperation.Progress.TotalBytesToReceive / 1024, progress);
-            switch (downloadOperation.Progress.Status)
+            try
             {
-                case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.Running:
-                    {
-                        break;
-                    }
-                case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedByApplication:
-                    {
-                        break;
-                    }
-                case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedCostedNetwork:
-                    {
-                        break;
-                    }
-                case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedNoNetwork:
-                    {
-                        break;
-                    }
-                case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.Error:
-                    {
-                        //Statustext.Text = "An error occured while downloading.";
-                        break;
-                    }
+                int progress = SelectedPodcastItem.DownloadPercentage = (int)(100 * ((double)downloadOperation.Progress.BytesReceived / (double)downloadOperation.Progress.TotalBytesToReceive));
+                //Statustext.Text = String.Format("{0} of {1} kb. downloaded - %{2} complete.", downloadOperation.Progress.BytesReceived / 1024, downloadOperation.Progress.TotalBytesToReceive / 1024, progress);
+                switch (downloadOperation.Progress.Status)
+                {
+                    case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.Running:
+                        {
+                            break;
+                        }
+                    case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedByApplication:
+                        {
+                            break;
+                        }
+                    case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedCostedNetwork:
+                        {
+                            break;
+                        }
+                    case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.PausedNoNetwork:
+                        {
+                            break;
+                        }
+                    case Windows.Networking.BackgroundTransfer.BackgroundTransferStatus.Error:
+                        {
+                            //Statustext.Text = "An error occured while downloading.";
+                            break;
+                        }
+                }
+                if (progress >= 100)
+                {
+                    downloadOperation = null;
+                }
             }
-            if (progress >= 100)
-            {
-                downloadOperation = null;
-            }
+            catch { }
         }
 
         private void Search(object parameter)
         {
             NavigationService.Navigate(typeof(Views.SearchPage));
-            
         }
 
         private void Settings(object parameter)
@@ -681,14 +687,18 @@ namespace Well_Podcast.ViewModels
 
         private void InitializeMediaPlayer()
         {
-            this._mediaPlayer = new MediaPlayer();
-            _systemMediaTransportControls = _mediaPlayer.SystemMediaTransportControls;
-            _mediaPlayer.AudioCategory = MediaPlayerAudioCategory.Media;
+            try
+            {
+                this._mediaPlayer = new MediaPlayer();
+                _systemMediaTransportControls = _mediaPlayer.SystemMediaTransportControls;
+                _mediaPlayer.AudioCategory = MediaPlayerAudioCategory.Media;
 
-            this._mediaPlayer.SystemMediaTransportControls.IsEnabled = true;
-            this._mediaPlayer.SystemMediaTransportControls.AutoRepeatMode = MediaPlaybackAutoRepeatMode.Track;
-            _mediaPlaybackList = new MediaPlaybackList();
-            this._mediaPlayerElement.SetMediaPlayer(this._mediaPlayer);
+                this._mediaPlayer.SystemMediaTransportControls.IsEnabled = true;
+                this._mediaPlayer.SystemMediaTransportControls.AutoRepeatMode = MediaPlaybackAutoRepeatMode.Track;
+                _mediaPlaybackList = new MediaPlaybackList();
+                this._mediaPlayerElement.SetMediaPlayer(this._mediaPlayer);
+            }
+            catch { }
         }
 
         private async void InitializeAsync()

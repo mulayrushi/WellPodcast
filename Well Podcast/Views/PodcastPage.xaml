@@ -15,7 +15,7 @@
         <converters:BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </Page.Resources>
 
-    <Grid x:Name="MainGrid" Background="White" >
+    <Grid x:Name="MainGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup x:Name="VisualStateGroupResponsive">
                 <VisualState x:Name="VisualStateMin0">
@@ -105,8 +105,8 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <!--<ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />-->
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0">
                                     <pr:PercentageRing ScaleWidth="8" Value="{Binding PlayPercentage,Mode=OneWay}" Height="40" Width="40" BorderThickness="1" TrailBrush="{ThemeResource SystemControlBackgroundAccentBrush}" />
@@ -132,12 +132,12 @@
                                 <!--<Button Grid.Column="2" Style="{StaticResource CircleButtonStyle}" Height="48" Width="48" Margin="4" Padding="0" Command="{Binding ElementName=MainGrid, Path=DataContext.PlaySinglePodcastVideoCommand}" CommandParameter="{Binding }" >
                                     <FontIcon FontSize="24" Glyph="&#xe41f;" Foreground="{ThemeResource SystemControlBackgroundAccentBrush}" FontFamily="ms-appx:/Fonts/MaterialIcons.ttf#Material Icons" />
                                 </Button>-->
-                                <Grid Grid.Column="3">
+                                <!--<Grid Grid.Column="3">
                                     <pr:PercentageRing ScaleWidth="8" Value="{Binding DownloadPercentage,Mode=OneWay}" Height="40" Width="40" BorderBrush="Red" TrailBrush="{ThemeResource SystemControlBackgroundAccentBrush}" />
                                     <Button Style="{StaticResource CircleButtonStyle}" Height="32" Width="32" Padding="0" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{Binding ElementName=MainGrid, Path=DataContext.DownloadSinglePodcastCommand}" CommandParameter="{Binding }">
                                         <FontIcon Glyph="&#xe2c4;" Foreground="Red" FontFamily="ms-appx:/Fonts/MaterialIcons.ttf#Material Icons" />
                                     </Button>
-                                </Grid>
+                                </Grid>-->
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
